@@ -27,13 +27,22 @@ class App:
 
     def update_player(self):
         if pyxel.btnp(pyxel.KEY_SPACE):
-            print("Space pressed")
-            self.gravity = self.gravity * -1
-        if self.player_y < pyxel.height - (self.player_size/2) or self.player_y <= self.player_size/2:
-            self.player_dy = min(self.player_dy + 1, 4)
-        else:
+            self.gravity *= -1
+
+        max_speed = 4
+
+        self.player_dy = max(-max_speed, min(self.player_dy + self.gravity, max_speed))
+
+        self.player_y += self.player_dy
+
+        top = 0
+        bottom = pyxel.height - self.player_size
+        if self.player_y < top:
+            self.player_y = top
             self.player_dy = 0
-        self.player_y += self.player_dy * self.gravity
+        elif self.player_y > bottom:
+            self.player_y = bottom
+            self.player_dy = 0
 
     def draw(self):
         pyxel.cls(0)
