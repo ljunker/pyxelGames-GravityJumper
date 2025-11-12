@@ -27,7 +27,7 @@ class App:
                 pyxel.rndi(0, pyxel.height - 20),
                 pyxel.rndi(self.player_size + 4, self.player_size + 16),
                 False,
-                1,  # Startgeschwindigkeit
+                1,
                 0
             )
             for i in range(3)
@@ -82,7 +82,6 @@ class App:
     def update_obstacles(self):
         if not self.is_alive:
             return
-        # Hindernisse sind Quadrate größer als der Spieler, bewegen sich von rechts nach links
         base_speed = .75
         difficulty = 0.025 * self.score
         var_range = min(difficulty, 3.5)
@@ -117,11 +116,9 @@ class App:
                 y = pyxel.height - size
                 yspeed *= -0.6
 
-            # Nur behalten, wenn noch im Bildschirm
             if x + size > 0:
                 new_obstacles.append((x, y, size, passed, speed, yspeed))
             else:
-                # Wieder rechts neu spawnen
                 ny = pyxel.rndi(0, pyxel.height - max_size)
                 nsize = pyxel.rndi(min_size, max_size)
                 nbase = base_speed + 0.02 * self.score + pyxel.rndf(0.0, var_range)
@@ -129,7 +126,6 @@ class App:
                 nys = dir_to_player * (0.2 + 0.01 * self.score) + pyxel.rndf(-0.1, 0.1)
                 new_obstacles.append((pyxel.width + pyxel.rndi(0, 30), ny, nsize, False, nbase, nys))
 
-        # Spawning-Ausdünnung: wenn zu wenige, füge neue rechts hinzu
         while len(new_obstacles) < 3:
             ny = pyxel.rndi(0, pyxel.height - max_size)
             nsize = pyxel.rndi(min_size, max_size)
@@ -140,7 +136,6 @@ class App:
 
         self.obstacles = new_obstacles
 
-        # Optionale einfache Kollision
         px, py, ps = self.player_x, self.player_y, self.player_size
         for ox, oy, os, _, _, _ in self.obstacles:
             if px < ox + os and px + ps > ox and py < oy + os and py + ps > oy:
