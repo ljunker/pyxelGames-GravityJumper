@@ -1,5 +1,12 @@
 import pyxel
 
+
+def draw_centered_text(y: int, text: str, color: int):
+    w = len(text)*4
+    x = (pyxel.width - w)//2
+    pyxel.text(x, y, text, color)
+
+
 class App:
     def __init__(self):
         pyxel.init(160, 120, fps=60, title="Gravity Jumper")
@@ -27,15 +34,17 @@ class App:
                 pyxel.rndi(0, pyxel.height - 20),
                 pyxel.rndi(self.player_size + 4, self.player_size + 16),
                 False,
-                1,
+                .5,
                 0
             )
             for i in range(3)
         ]
 
         self.score = 0
+        self.frame_count = 0
 
     def update(self):
+        self.frame_count += 1
         pyxel.cls(0)
         if self.start_screen:
             if pyxel.btn(pyxel.KEY_RETURN):
@@ -83,18 +92,17 @@ class App:
         if not self.is_alive:
             return
         base_speed = .75
-        difficulty = 0.025 * self.score
+        difficulty = 0.0025 * self.score
         var_range = min(difficulty, 3.5)
-        y_spawn_speed = 0.025 * self.score
-        seek_strength = max(0.000003 * self.score, 0.0)
-        max_y_speed = 0.03 + 0.01 * self.score
+        seek_strength = 0.01 * difficulty
+        max_y_speed = 0.03 + difficulty
         min_size = self.player_size + 4
         max_size = self.player_size + 8
 
         new_obstacles = []
         for x, y, size, passed, speed, yspeed in self.obstacles:
             current_speed = speed + difficulty + pyxel.rndf(-var_range, var_range)*0.5
-            current_speed = max(0.4, current_speed)
+            current_speed = max(difficulty + 0.01, current_speed)
             x -= current_speed
 
             dy_to_player = self.player_y - y
@@ -123,7 +131,7 @@ class App:
                 nsize = pyxel.rndi(min_size, max_size)
                 nbase = base_speed + 0.02 * self.score + pyxel.rndf(0.0, var_range)
                 dir_to_player = 1 if ny < self.player_y else -1
-                nys = dir_to_player * (0.2 + 0.01 * self.score) + pyxel.rndf(-0.1, 0.1)
+                nys = dir_to_player * (0.01 * difficulty)
                 new_obstacles.append((pyxel.width + pyxel.rndi(0, 30), ny, nsize, False, nbase, nys))
 
         while len(new_obstacles) < 3:
@@ -144,23 +152,19 @@ class App:
     def draw(self):
         pyxel.cls(0)
         if self.start_screen:
-            self.draw_centered_text(41, "Gravity Jumper", 10)
-            self.draw_centered_text(60, "ENTER to start", 7)
+            draw_centered_text(41, "Gravity Jumper", 10)
+            draw_centered_text(60, "ENTER to start", 7)
         elif self.game_over:
-            self.draw_centered_text(41, "Game Over", 8)
-            self.draw_centered_text(60, f"Score: {self.score}", 8)
-            self.draw_centered_text(80, "[R]estart  [Q]uit", 8)
+            draw_centered_text(41, "Game Over", 8)
+            draw_centered_text(60, f"Score: {self.score}", 8)
+            draw_centered_text(80, "[R]estart  [Q]uit", 8)
         else:
-
             pyxel.rect(self.player_x, self.player_y, self.player_size, self.player_size, 11)
             for x, y, size, _, _, _ in self.obstacles:
                 pyxel.rect(x, y, size, size, 9)
             pyxel.text(4, 4, f"Score: {self.score}", 7)
-
-    def draw_centered_text(self, y: int, text: str, color: int):
-        w = len(text)*4
-        x = (pyxel.width - w)//2
-        pyxel.text(x, y, text, color)
+            if self.frame_count < 300:
+                draw_centered_text(pyxel.height//2, "SPACE to change gravity", 7)
 
 
 App()
