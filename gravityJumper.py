@@ -94,7 +94,7 @@ class App:
         base_speed = .75
         difficulty = 0.0025 * self.score
         var_range = min(difficulty, 3.5)
-        seek_strength = 0.01 * difficulty
+        seek_strength = 0.02 * difficulty
         max_y_speed = 0.03 + difficulty
         min_size = self.player_size + 4
         max_size = self.player_size + 8
