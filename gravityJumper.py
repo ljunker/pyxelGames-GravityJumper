@@ -2,7 +2,7 @@ import pyxel
 
 class App:
     def __init__(self):
-        pyxel.init(160, 120, title="Gravity Jumper")
+        pyxel.init(160, 120, fps=60, title="Gravity Jumper")
 
         self.start_screen = True
         self.reset_game()
@@ -16,7 +16,7 @@ class App:
         self.player_y = 20
         self.player_size = 10
         self.player_dy = 0
-        self.gravity = 1
+        self.gravity = 1.0
         self.is_alive = True
 
         self.game_over = False
@@ -27,7 +27,7 @@ class App:
                 pyxel.rndi(0, pyxel.height - 20),
                 pyxel.rndi(self.player_size + 4, self.player_size + 16),
                 False,
-                2,  # Startgeschwindigkeit
+                1,  # Startgeschwindigkeit
                 0
             )
             for i in range(3)
@@ -57,7 +57,7 @@ class App:
         if pyxel.btnp(pyxel.KEY_SPACE):
             self.gravity *= -1
 
-        max_speed = 4
+        max_speed = 2
 
         self.player_dy = max(-max_speed, min(self.player_dy + self.gravity, max_speed))
 
@@ -83,22 +83,39 @@ class App:
         if not self.is_alive:
             return
         # Hindernisse sind Quadrate größer als der Spieler, bewegen sich von rechts nach links
-        base_speed = 1.5
-        difficulty = 0.05 * self.score
+        base_speed = .75
+        difficulty = 0.025 * self.score
         var_range = min(difficulty, 3.5)
-        y_spawn_speed = 0.05 * self.score
+        y_spawn_speed = 0.025 * self.score
+        seek_strength = max(0.000003 * self.score, 0.0)
+        max_y_speed = 0.03 + 0.01 * self.score
         min_size = self.player_size + 4
         max_size = self.player_size + 8
 
         new_obstacles = []
         for x, y, size, passed, speed, yspeed in self.obstacles:
-            current_speed = speed + difficulty
+            current_speed = speed + difficulty + pyxel.rndf(-var_range, var_range)*0.5
+            current_speed = max(0.4, current_speed)
             x -= current_speed
+
+            dy_to_player = self.player_y - y
+            yspeed += max(-seek_strength, min(seek_strength, dy_to_player * 0.01))
+            if yspeed > max_y_speed:
+                yspeed = max_y_speed
+            elif yspeed < -max_y_speed:
+                yspeed = -max_y_speed
             y += yspeed
 
             if not passed and x + size < self.player_x:
                 self.score += 1
                 passed = True
+
+            if y < 0:
+                y = 0
+                yspeed *= -0.6
+            elif y + size > pyxel.height:
+                y = pyxel.height - size
+                yspeed *= -0.6
 
             # Nur behalten, wenn noch im Bildschirm
             if x + size > 0:
@@ -106,22 +123,20 @@ class App:
             else:
                 # Wieder rechts neu spawnen
                 ny = pyxel.rndi(0, pyxel.height - max_size)
-                ny_speed = pyxel.rndf(0, y_spawn_speed)
-                if ny > pyxel.height//2:
-                    ny_speed *= -1
                 nsize = pyxel.rndi(min_size, max_size)
-                nspeed = base_speed + pyxel.rndf(0, var_range)
-                new_obstacles.append((pyxel.width + pyxel.rndi(0, 30), ny, nsize, False, nspeed, ny_speed))
+                nbase = base_speed + 0.02 * self.score + pyxel.rndf(0.0, var_range)
+                dir_to_player = 1 if ny < self.player_y else -1
+                nys = dir_to_player * (0.2 + 0.01 * self.score) + pyxel.rndf(-0.1, 0.1)
+                new_obstacles.append((pyxel.width + pyxel.rndi(0, 30), ny, nsize, False, nbase, nys))
 
         # Spawning-Ausdünnung: wenn zu wenige, füge neue rechts hinzu
         while len(new_obstacles) < 3:
             ny = pyxel.rndi(0, pyxel.height - max_size)
-            ny_speed = pyxel.rndf(0, y_spawn_speed)
-            if ny > pyxel.height // 2:
-                ny_speed *= -1
             nsize = pyxel.rndi(min_size, max_size)
-            nspeed = base_speed + pyxel.rndf(0, var_range)
-            new_obstacles.append((pyxel.width + pyxel.rndi(0, 60), ny, nsize, False, nspeed, ny_speed))
+            nbase = base_speed + 0.02 * self.score + pyxel.rndf(0.0, var_range)
+            dir_to_player = 1 if ny < self.player_y else -1
+            nys = dir_to_player * (0.2 + 0.01 * self.score) + pyxel.rndf(-0.1, 0.1)
+            new_obstacles.append((pyxel.width + pyxel.rndi(0, 30), ny, nsize, False, nbase, nys))
 
         self.obstacles = new_obstacles
 
