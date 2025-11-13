@@ -33,7 +33,7 @@ jobs:
             libsdl2-ttf-2.0-0 \
             libgl1 \
             libglu1-mesa \
-            libasound2 \
+            libasound2t64 \
             libx11-6 \
             libxcursor1 \
             libxi6 \
