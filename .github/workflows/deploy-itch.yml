@@ -49,22 +49,16 @@ jobs:
       - name: Add dependencies
         run: |
           uv add pyxel
-          # Falls du weitere Runtime-Abhängigkeiten brauchst, hier hinzufügen:
-          # uv add <paket>
 
       - name: Build Pyxel package (.pyxapp)
         run: |
-          mkdir -p app dist
+          mkdir -p app
           cp gravityJumper.py app/main.py
-          # Syntax: pyxel package APP_DIR STARTUP_SCRIPT [--name ...] [--output ...]
-          uv run pyxel package app app/main.py --name "Gravity Jumper" --output dist
-        shell: bash
-
-      - name: Build HTML via app2html
-        run: |
-          mkdir -p dist
-          # Syntax: pyxel app2html STARTUP_SCRIPT OUTPUT_HTML
-          uv run pyxel app2html app/main.py dist/gravity-jumper.html
+          cd app
+          uv run pyxel package . main.py
+          cd ../dist
+          uv run pyxel app2html app.pyxapp
+          cd ..
         shell: bash
 
       - name: List build outputs
@@ -79,5 +73,5 @@ jobs:
         run: |
           # Für Web-Kanal erwartet itch.io meistens ein Verzeichnis mit index.html
           mkdir -p web
-          cp dist/gravity-jumper.html web/index.html
+          cp dist/app.html web/index.html
           butler push web kryptikker/gravity-jumper:web
