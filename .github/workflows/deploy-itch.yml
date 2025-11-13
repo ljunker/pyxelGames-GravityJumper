@@ -56,12 +56,14 @@ jobs:
         run: |
           mkdir -p app dist
           cp gravityJumper.py app/main.py
-          uv run pyxel package app app/main.py --name 'Gravity Jumper' --output dist
+          # Syntax: pyxel package APP_DIR STARTUP_SCRIPT [--name ...] [--output ...]
+          uv run pyxel package app app/main.py --name "Gravity Jumper" --output dist
         shell: bash
 
       - name: Build HTML via app2html
         run: |
           mkdir -p dist
+          # Syntax: pyxel app2html STARTUP_SCRIPT OUTPUT_HTML
           uv run pyxel app2html app/main.py dist/gravity-jumper.html
         shell: bash
 
