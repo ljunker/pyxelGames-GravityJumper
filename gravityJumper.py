@@ -47,13 +47,11 @@ class App:
         self.frame_count += 1
         pyxel.cls(0)
         if self.start_screen:
-            if pyxel.btn(pyxel.KEY_RETURN):
+            if pyxel.btn(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START):
                 self.start_screen = False
         elif self.game_over:
-            if pyxel.btnp(pyxel.KEY_R):
+            if pyxel.btnp(pyxel.KEY_R) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START):
                 self.reset_game()
-            if pyxel.btn(pyxel.KEY_Q):
-                pyxel.quit()
         else:
             self.update_player()
             self.update_obstacles()
@@ -63,7 +61,7 @@ class App:
     def update_player(self):
         if not self.is_alive:
             return
-        if pyxel.btnp(pyxel.KEY_SPACE):
+        if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A):
             self.gravity *= -1
 
         max_speed = 2
@@ -152,19 +150,19 @@ class App:
     def draw(self):
         pyxel.cls(0)
         if self.start_screen:
-            draw_centered_text(41, "Gravity Jumper", 10)
-            draw_centered_text(60, "ENTER to start", 7)
+            draw_centered_text(40, "Gravity Jumper", 10)
+            draw_centered_text(60, "ENTER or START to start", 7)
         elif self.game_over:
-            draw_centered_text(41, "Game Over", 8)
-            draw_centered_text(60, f"Score: {self.score}", 8)
-            draw_centered_text(80, "[R]estart  [Q]uit", 8)
+            draw_centered_text(40, "Game Over", 8)
+            draw_centered_text(50, f"Score: {self.score}", 8)
+            draw_centered_text(60, "R or START to restart", 8)
         else:
             pyxel.rect(self.player_x, self.player_y, self.player_size, self.player_size, 11)
             for x, y, size, _, _, _ in self.obstacles:
                 pyxel.rect(x, y, size, size, 9)
             pyxel.text(4, 4, f"Score: {self.score}", 7)
             if self.frame_count < 300:
-                draw_centered_text(pyxel.height//2, "SPACE to change gravity", 7)
+                draw_centered_text(pyxel.height//2, "SPACE or A to change gravity", 7)
 
 
 App()
