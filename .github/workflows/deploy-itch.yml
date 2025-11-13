@@ -1,0 +1,63 @@
+name: Build and Deploy to itch.io
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Init uv project env
+        run: |
+          uv venv
+          uv run python --version
+
+      - name: Add dependencies
+        run: |
+          uv add pyxel
+          # Falls du weitere Runtime-Abhängigkeiten brauchst, hier hinzufügen:
+          # uv add <paket>
+
+      - name: Build Pyxel package (.pyxapp)
+        run: |
+          uv run python -c "import pyxel, sys; print('Pyxel', pyxel.__version__)"
+          uv run pyxel package gravityJumper.py --name 'Gravity Jumper' --icon '' --output dist
+        shell: bash
+
+      - name: Build HTML via app2html
+        run: |
+          mkdir -p dist
+          # app2html erzeugt eine Einzeldatei-HTML mit eingebettetem Code/Assets
+          uv run pyxel app2html gravityJumper.py dist/gravity-jumper.html
+        shell: bash
+
+      - name: List build outputs
+        run: ls -la dist
+
+      - name: Setup butler
+        uses: remarkablegames/setup-butler@v2
+
+      - name: Push HTML build to itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.ITCH_BUTLER_CREDENTIALS }}
+        run: |
+          # Für Web-Kanal erwartet itch.io meistens ein Verzeichnis mit index.html
+          mkdir -p web
+          cp dist/gravity-jumper.html web/index.html
+          butler push web kryptikker/gravity-jumper:web
