@@ -43,6 +43,11 @@ class App:
         self.score = 0
         self.frame_count = 0
 
+        # Jump bonus tracking: award bonus when traversing from one boundary to the opposite
+        self.jump_in_progress = False  # True if a boundary-to-boundary jump is underway
+        self.jump_target = None        # 'top' or 'bottom' indicating the destination boundary
+        self.jump_bonus = 5            # bonus points for a completed full-screen jump
+
     def update(self):
         self.frame_count += 1
         pyxel.cls(0)
@@ -62,6 +67,23 @@ class App:
         if not self.is_alive:
             return
         if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A):
+            # Determine if the flip starts a boundary-to-boundary jump
+            at_top = self.player_y <= 0
+            at_bottom = self.player_y >= pyxel.height - self.player_size
+            if at_top:
+                # Start a jump towards bottom
+                self.jump_in_progress = True
+                self.jump_target = 'bottom'
+            elif at_bottom:
+                # Start a jump towards top
+                self.jump_in_progress = True
+                self.jump_target = 'top'
+            else:
+                # Flip initiated mid-air cancels any current jump attempt
+                self.jump_in_progress = False
+                self.jump_target = None
+
+            # Apply gravity flip
             self.gravity *= -1
 
         max_speed = 2
@@ -78,6 +100,17 @@ class App:
         elif self.player_y > bottom:
             self.player_y = bottom
             self.player_dy = 0
+
+        # Check for completion of a boundary-to-boundary jump and award bonus once
+        if self.jump_in_progress:
+            if self.jump_target == 'top' and self.player_y == top:
+                self.score += self.jump_bonus
+                self.jump_in_progress = False
+                self.jump_target = None
+            elif self.jump_target == 'bottom' and self.player_y == bottom:
+                self.score += self.jump_bonus
+                self.jump_in_progress = False
+                self.jump_target = None
 
         if self.is_alive:
             px, py, ps = self.player_x, self.player_y, self.player_size
@@ -152,6 +185,8 @@ class App:
         if self.start_screen:
             draw_centered_text(40, "Gravity Jumper", 10)
             draw_centered_text(60, "ENTER or START to start", 7)
+            draw_centered_text(70, "SPACE or A to change gravity", 7)
+            draw_centered_text(80, "Bonus points for complete jumps", 7)
         elif self.game_over:
             draw_centered_text(40, "Game Over", 8)
             draw_centered_text(50, f"Score: {self.score}", 8)
@@ -161,8 +196,6 @@ class App:
             for x, y, size, _, _, _ in self.obstacles:
                 pyxel.rect(x, y, size, size, 9)
             pyxel.text(4, 4, f"Score: {self.score}", 7)
-            if self.frame_count < 300:
-                draw_centered_text(pyxel.height//2, "SPACE or A to change gravity", 7)
 
 
 App()
