@@ -36,7 +36,6 @@ jobs:
 
       - name: Build Pyxel package (.pyxapp)
         run: |
-          uv run python -c "import pyxel, sys; print('Pyxel', pyxel.__version__)"
           uv run pyxel package gravityJumper.py --name 'Gravity Jumper' --icon '' --output dist
         shell: bash
 
