@@ -50,7 +50,12 @@ jobs:
         run: |
           uv add pyxel
 
+      - name: Setup butler
+        uses: remarkablegames/setup-butler@v2
+
       - name: Build Pyxel package (.pyxapp)
+        env:
+          BUTLER_API_KEY: ${{ secrets.ITCH_BUTLER_CREDENTIALS }}
         run: |
           mkdir -p app
           cp gravityJumper.py app/main.py
@@ -59,18 +64,6 @@ jobs:
           cd ../dist
           uv run pyxel app2html app.pyxapp
           cd ..
-        shell: bash
-
-      - name: List build outputs
-        run: ls -la dist
-
-      - name: Setup butler
-        uses: remarkablegames/setup-butler@v2
-
-      - name: Push HTML build to itch.io
-        env:
-          BUTLER_API_KEY: ${{ secrets.ITCH_BUTLER_CREDENTIALS }}
-        run: |
           # Für Web-Kanal erwartet itch.io meistens ein Verzeichnis mit index.html
           mkdir -p web
           cp dist/app.html web/index.html
