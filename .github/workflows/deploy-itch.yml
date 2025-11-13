@@ -23,6 +23,24 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+      - name: System-Abhängigkeiten für Pyxel
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libsdl2-2.0-0 \
+            libsdl2-image-2.0-0 \
+            libsdl2-mixer-2.0-0 \
+            libsdl2-ttf-2.0-0 \
+            libgl1 \
+            libglu1-mesa \
+            libasound2 \
+            libx11-6 \
+            libxcursor1 \
+            libxi6 \
+            libxrandr2 \
+            libxinerama1 \
+            libxxf86vm1
+
       - name: Init uv project env
         run: |
           uv venv
@@ -36,13 +54,12 @@ jobs:
 
       - name: Build Pyxel package (.pyxapp)
         run: |
-          uv run pyxel package gravityJumper.py --name 'Gravity Jumper' --icon '' --output dist
+          uv run pyxel package gravityJumper.py --name 'Gravity Jumper' --output dist
         shell: bash
 
       - name: Build HTML via app2html
         run: |
           mkdir -p dist
-          # app2html erzeugt eine Einzeldatei-HTML mit eingebettetem Code/Assets
           uv run pyxel app2html gravityJumper.py dist/gravity-jumper.html
         shell: bash
 
